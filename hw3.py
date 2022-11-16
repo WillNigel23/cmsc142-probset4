@@ -17,25 +17,32 @@ class TernarySearchTree:
     def __init__(self):
         self.root_node = None
 
-    def _insert(self, word, node, index):
-        if node is None:
-            node = Node(word[index])
-            node.is_end = True
+    def _insert(self, word, node):
+        head = word[0]
+        tail = word[1:]
 
-        if word[index] < node.value:
-            node.is_end = False
-            node.left_child = self._insert(word, node.left_child, index)
-        elif word[index] > node.value:
-            node.is_end = False
-            node.right_child = self._insert(word, node.right_child, index)
-        elif index < len(word) - 1:
-            node.is_end = False
-            node.middle_child = self._insert(word, node.middle_child, index + 1)
+        # Empy Tree
+        if node is None:
+            node = Node(head)
+
+        # Current char < node value
+        if head < node.value:
+            node.left_child = self._insert(word, node.left_child)
+        # Current char > node value
+        elif head > node.value:
+            node.right_child = self._insert(word, node.right_child)
+        # Current char is same
         else:
-            node.value = word[index]
+            # If tail is not yet 0
+            if len(tail) != 0:
+                node.middle_child = self._insert(tail, node.middle_child)
+
+            # End point
+            else:
+                node.is_end = True
+                node.value = head
 
         return node
-
 
 
     def insert(self, word, node=None):
@@ -58,22 +65,33 @@ class TernarySearchTree:
         """
 
         ### TODO: YOUR CODE HERE ###
-        self.root_node = self._insert(word, self.root_node, 0)
-
-    def _get(self, word, node, index):
-        if node is None:
+        self.root_node = self._insert(word, self.root_node)
+        
+    def _contains(self, word, node):
+        # Current Node is None
+        if node is None or len(word) == 0:
             return None
-        print(word)
-        print(index)
-        if word[index] < node.value:
-            return self._get(word, node.left_child, 0)
-        elif word[index] > node.value:
-            return self._get(word, node.right_child, 0)
-        elif index < len(word) - 1:
-            return self._get(word, node.middle_child, index + 1)
-        else:
-            return node
 
+        head = word[0]
+        tail = word[1:]
+
+        # Current char < node value
+        if head < node.value:
+            return self._contains(word, node.left_child)
+        # Current char > node value
+        elif head > node.value:
+            return self._contains(word, node.right_child)
+        # Current char is same
+        else:
+            # Len of tail is not 0
+            if len(tail) == 0 and node.is_end: 
+                return node
+            
+            # Endpoint
+            else:
+                return self._contains(tail, node.middle_child)
+
+        
 
     def contains(self, word, node=None):
         """ Returns True if the provided word is in the ternary search tree
@@ -99,7 +117,7 @@ class TernarySearchTree:
         """
 
         ### TODO: YOUR CODE HERE ###
-        node = self._get(word, self.root_node, 0)
+        node = self._contains(word, self.root_node)
         return node is not None
 
 class Spellchecker:
@@ -117,7 +135,6 @@ class Spellchecker:
         for word in valid_words:
             self.tst.insert(word)
 
-        #self.tst.contains("hello")
 
     def getNearbyStrings(self, word):
         """Takes in an input word and returns a list of strings which are an edit
@@ -166,12 +183,12 @@ class Spellchecker:
 
         ### TODO: YOUR CODE HERE ###
         nearbyStrings = self.getNearbyStrings(word)
+            
         suggestions = []
         for word in nearbyStrings:
             if self.tst.contains(word):
                 suggestions.append(word)
         return suggestions
-        
     
 spellchecker = Spellchecker(valid_words)
 output = spellchecker.make_suggestions(input())
